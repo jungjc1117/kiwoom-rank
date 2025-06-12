@@ -119,34 +119,49 @@
             document.getElementById('timestamp').textContent = `[업데이트 시각] ${new Date().toLocaleTimeString()}`;
         }
 
+        // 일정 시간(ms) 대기하는 함수
+        function delay(ms) {
+            return new Promise(resolve => setTimeout(resolve, ms));
+        }
+        
         async function updateData() {
             try {
                 document.getElementById('output').innerText = '데이터 불러오는 중...';
                 const token = await fetchToken();
-                if (!token) throw new Error('토큰 실패');
-
+                if (!token) throw new Error('토큰 발급 실패');
+        
                 const stockList = await fetchTopStocks(token);
-
-                // 종목 상세 데이터 병합
-                const mergedData = await Promise.all(stockList.map(async item => {
+                const mergedData = [];
+        
+                for (let i = 0; i < stockList.length; i++) {
+                    const item = stockList[i];
                     const code = item.stk_cd.split('_')[0];
-                    const detail = await fetchStockDetail(token, code);
-                    return {
-                        stk_cd: code,
-                        now_rank: item.now_rank,
-                        stk_nm: item.stk_nm,
-                        flu_rt: item.flu_rt,
-                        trde_prica: item.trde_prica,
-                        upName: detail.upName,
-                        upSizeName: detail.upSizeName,
-                    };
-                }));
-
+        
+                    try {
+                        const detail = await fetchStockDetail(token, code);
+        
+                        mergedData.push({
+                            stk_cd: code,
+                            now_rank: item.now_rank,
+                            stk_nm: item.stk_nm,
+                            flu_rt: item.flu_rt,
+                            trde_prica: item.trde_prica,
+                            upName: detail.upName,
+                            upSizeName: detail.upSizeName,
+                        });
+                    } catch (err) {
+                        console.warn(`종목 ${code} 상세 조회 실패`, err);
+                    }
+        
+                    await delay(300); // 각 종목마다 300ms 대기 (과도한 요청 방지)
+                }
+        
                 renderTable(mergedData);
             } catch (e) {
                 document.getElementById('output').innerText = '에러 발생: ' + e;
             }
         }
+
 
         updateData(); // 최초 실행
         setInterval(updateData, 30000); // 5초마다 갱신
