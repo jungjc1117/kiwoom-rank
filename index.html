@@ -3,10 +3,26 @@
 <head>
     <meta charset="UTF-8">
     <title>Kiwoom 거래대금상위종목 조회</title>
+    <style>
+        table {
+            border-collapse: collapse;
+            width: 100%;
+            margin-top: 1rem;
+        }
+        th, td {
+            border: 1px solid #ccc;
+            padding: 8px;
+            text-align: center;
+        }
+        th {
+            background-color: #f0f0f0;
+        }
+    </style>
 </head>
 <body>
     <h1>Kiwoom 거래대금상위종목 조회 (5초마다 갱신)</h1>
-    <pre id="output"></pre>
+    <div id="timestamp"></div>
+    <div id="output"></div>
 
     <script>
         async function fn_au10001(data) {
@@ -21,19 +37,15 @@
                     body: JSON.stringify(data)
                 });
 
-                const status = response.status;
                 const result = await response.json();
-
-                document.getElementById('output').textContent += `\n[토큰 응답]\nStatus Code: ${status}\n${JSON.stringify(result, null, 4)}\n`;
-
                 return result.token;
             } catch (error) {
-                document.getElementById('output').textContent += `Token Error: ${error}\n`;
+                document.getElementById('output').innerHTML = `<p>Token Error: ${error}</p>`;
                 return null;
             }
         }
 
-        async function fn_ka10032(token, data, contYn = 'N', nextKey = '') {
+        async function fn_ka10032(token, data) {
             const url = 'https://mockapi.kiwoom.com/api/dostk/rkinfo';
 
             try {
@@ -42,19 +54,52 @@
                     headers: {
                         'Content-Type': 'application/json;charset=UTF-8',
                         'authorization': `Bearer ${token}`,
-                        'cont-yn': contYn,
-                        'next-key': nextKey,
+                        'cont-yn': 'N',
+                        'next-key': '',
                         'api-id': 'ka10032',
                     },
                     body: JSON.stringify(data)
                 });
 
                 const result = await response.json();
-
-                document.getElementById('output').textContent += `\n[차트 응답 - ${new Date().toLocaleTimeString()}]\n${JSON.stringify(result, null, 4)}\n`;
+                return result.trde_prica_upper || [];
             } catch (error) {
-                document.getElementById('output').textContent += `API Error: ${error}\n`;
+                document.getElementById('output').innerHTML = `<p>API Error: ${error}</p>`;
+                return [];
             }
+        }
+
+        function renderTable(dataList) {
+            let html = `
+                <table>
+                    <thead>
+                        <tr>
+                            <th>종목코드</th>
+                            <th>순위</th>
+                            <th>종목명</th>
+                            <th>등락률</th>
+                            <th>거래대금</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+            `;
+
+            dataList.forEach(item => {
+                const code = item.stk_cd.split('_')[0];
+                html += `
+                    <tr>
+                        <td>${code}</td>
+                        <td>${item.now_rank}</td>
+                        <td>${item.stk_nm}</td>
+                        <td>${item.flu_rt}</td>
+                        <td>${parseInt(item.trde_prica).toLocaleString()}</td>
+                    </tr>
+                `;
+            });
+
+            html += `</tbody></table>`;
+            document.getElementById('output').innerHTML = html;
+            document.getElementById('timestamp').textContent = `[업데이트 시각] ${new Date().toLocaleTimeString()}`;
         }
 
         const accessParams = {
@@ -69,20 +114,17 @@
             stex_tp: '3',
         };
 
-        async function fetchAndDisplay() {
-            document.getElementById('output').textContent = ''; // 화면 초기화
+        async function updateData() {
             const token = await fn_au10001(accessParams);
-
             if (token) {
-                await fn_ka10032(token, chartParams);
+                const dataList = await fn_ka10032(token, chartParams);
+                renderTable(dataList);
             }
         }
 
-        // 최초 1회 실행
-        fetchAndDisplay();
-
-        // 이후 5초마다 반복 실행
-        setInterval(fetchAndDisplay, 5000);
+        // 최초 실행 + 5초마다 반복
+        updateData();
+        setInterval(updateData, 5000);
     </script>
 </body>
 </html>
