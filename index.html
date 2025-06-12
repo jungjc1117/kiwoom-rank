@@ -2,10 +2,10 @@
 <html lang="ko">
 <head>
     <meta charset="UTF-8">
-    <title>Kiwoom API 주식 차트 조회</title>
+    <title>Kiwoom 거래대금상위종목 조회</title>
 </head>
 <body>
-    <h1>Kiwoom 거래대금상위종목 조회</h1>
+    <h1>Kiwoom 거래대금상위종목 조회 (5초마다 갱신)</h1>
     <pre id="output"></pre>
 
     <script>
@@ -24,7 +24,7 @@
                 const status = response.status;
                 const result = await response.json();
 
-                document.getElementById('output').textContent += `Status Code: ${status}\nResponse: ${JSON.stringify(result, null, 4)}\n`;
+                document.getElementById('output').textContent += `\n[토큰 응답]\nStatus Code: ${status}\n${JSON.stringify(result, null, 4)}\n`;
 
                 return result.token;
             } catch (error) {
@@ -51,32 +51,38 @@
 
                 const result = await response.json();
 
-                document.getElementById('output').textContent += `\nBody:\n${JSON.stringify(result, null, 4)}\n`;
+                document.getElementById('output').textContent += `\n[차트 응답 - ${new Date().toLocaleTimeString()}]\n${JSON.stringify(result, null, 4)}\n`;
             } catch (error) {
                 document.getElementById('output').textContent += `API Error: ${error}\n`;
             }
         }
 
-        (async () => {
-            const accessParams = {
-                grant_type: 'client_credentials',
-                appkey: 'pdttv1FeGLioCvpIK63wRIwSGNORSGKI9juDChFzuMA',
-                secretkey: 'bYQBCB1IieM972uJZxVPNBWKEIGd1kTMx-PbCnB-L58',
-            };
+        const accessParams = {
+            grant_type: 'client_credentials',
+            appkey: 'pdttv1FeGLioCvpIK63wRIwSGNORSGKI9juDChFzuMA',
+            secretkey: 'bYQBCB1IieM972uJZxVPNBWKEIGd1kTMx-PbCnB-L58',
+        };
 
-            const token = await fn_au10001(accessParams);  // ✅ 이 함수로 토큰을 먼저 받아야 합니다.
+        const chartParams = {
+            mrkt_tp: '001',
+            mang_stk_incls: '1',
+            stex_tp: '3',
+        };
+
+        async function fetchAndDisplay() {
+            document.getElementById('output').textContent = ''; // 화면 초기화
+            const token = await fn_au10001(accessParams);
 
             if (token) {
-                const chartParams = {
-                    mrkt_tp : '001',
-                    mang_stk_incls : '1',
-                    stex_tp : '3',
-                };
-
-                await fn_ka10032(token, chartParams); // ✅ 토큰을 넘기며 실제 차트 데이터를 요청
+                await fn_ka10032(token, chartParams);
             }
-        })();
+        }
 
+        // 최초 1회 실행
+        fetchAndDisplay();
+
+        // 이후 5초마다 반복 실행
+        setInterval(fetchAndDisplay, 5000);
     </script>
 </body>
 </html>
