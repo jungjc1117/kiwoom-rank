@@ -2,7 +2,7 @@
 <html lang="ko">
 <head>
     <meta charset="UTF-8">
-    <title>Kiwoom 거래대금상위종목 + 업종정보 조회</title>
+    <title>Kiwoom 거래대금상위종목 조회</title>
     <style>
         table {
             border-collapse: collapse;
@@ -20,11 +20,89 @@
     </style>
 </head>
 <body>
-    <h1>Kiwoom 종목정보 통합 조회 (2분마다 갱신)</h1>
+    <h1>Kiwoom 거래대금상위종목 조회 (5초마다 갱신)</h1>
     <div id="timestamp"></div>
-    <div id="output">데이터 불러오는 중...</div>
+    <div id="output"></div>
 
     <script>
+        async function fn_au10001(data) {
+            const url = 'https://mockapi.kiwoom.com/oauth2/token';
+        
+            try {
+                const response = await fetch(url, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json;charset=UTF-8',
+                    },
+                    body: JSON.stringify(data)
+                });
+        
+                const result = await response.json();
+                return result.token;
+            } catch (error) {
+                document.getElementById('output').innerHTML = `<p>Token Error: ${error}</p>`;
+                return null;
+            }
+        }
+        
+        async function fn_ka10032(token, data) {
+            const url = 'https://mockapi.kiwoom.com/api/dostk/rkinfo';
+        
+            try {
+                const response = await fetch(url, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json;charset=UTF-8',
+                        'authorization': `Bearer ${token}`,
+                        'cont-yn': 'N',
+                        'next-key': '',
+                        'api-id': 'ka10032',
+                    },
+                    body: JSON.stringify(data)
+                });
+        
+                const result = await response.json();
+                return result.trde_prica_upper || [];
+            } catch (error) {
+                document.getElementById('output').innerHTML = `<p>API Error: ${error}</p>`;
+                return [];
+            }
+        }
+        
+        function renderTable(dataList) {
+            let html = `
+                <table>
+                    <thead>
+                        <tr>
+                            <th>종목코드</th>
+                            <th>순위</th>
+                            <th>종목명</th>
+                            <th>등락률</th>
+                            <th>거래대금</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+            `;
+        
+            dataList.forEach(item => {
+                const code = item.stk_cd.split('_')[0];
+                html += `
+                    <tr>
+                        <td>${code}</td>
+                        <td>${item.now_rank}</td>
+                        <td>${item.stk_nm}</td>
+                        <td>${item.flu_rt}</td>
+                        <td>${parseInt(item.trde_prica).toLocaleString()}</td>
+                    </tr>
+                `;
+            });
+        
+            html += `</tbody></table>`;
+            document.getElementById('output').innerHTML = html;
+            document.getElementById('timestamp').textContent = `[업데이트 시각] ${new Date().toLocaleTimeString()}`;
+        }
+
+
         const accessParams = {
             grant_type: 'client_credentials',
             appkey: 'pdttv1FeGLioCvpIK63wRIwSGNORSGKI9juDChFzuMA',
@@ -37,134 +115,17 @@
             stex_tp: '3',
         };
 
-        async function fetchToken() {
-            const url = 'https://mockapi.kiwoom.com/oauth2/token';
-            const response = await fetch(url, {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json;charset=UTF-8' },
-                body: JSON.stringify(accessParams),
-            });
-            const result = await response.json();
-            return result.token;
-        }
-
-        async function fetchTopStocks(token) {
-            const url = 'https://mockapi.kiwoom.com/api/dostk/rkinfo';
-            const response = await fetch(url, {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json;charset=UTF-8',
-                    'authorization': `Bearer ${token}`,
-                    'cont-yn': 'N',
-                    'next-key': '',
-                    'api-id': 'ka10032',
-                },
-                body: JSON.stringify(chartParams),
-            });
-            const result = await response.json();
-            return result.trde_prica_upper || [];
-        }
-
-        async function fetchStockDetail(token, code) {
-            const url = 'https://mockapi.kiwoom.com/api/dostk/stkinfo';
-            const params = { stk_cd: code };
-            const response = await fetch(url, {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json;charset=UTF-8',
-                    'authorization': `Bearer ${token}`,
-                    'cont-yn': 'N',
-                    'next-key': '',
-                    'api-id': 'ka10100',
-                },
-                body: JSON.stringify(params),
-            });
-            const result = await response.json();
-            return result;
-        }
-
-        function renderTable(dataList) {
-            let html = `
-                <table>
-                    <thead>
-                        <tr>
-                            <th>종목코드</th>
-                            <th>순위</th>
-                            <th>종목명</th>
-                            <th>등락률</th>
-                            <th>거래대금</th>
-                            <th>업종</th>
-                            <th>규모</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-            `;
-
-            dataList.forEach(item => {
-                html += `
-                    <tr>
-                        <td>${item.stk_cd}</td>
-                        <td>${item.now_rank}</td>
-                        <td>${item.stk_nm}</td>
-                        <td>${item.flu_rt}</td>
-                        <td>${parseInt(item.trde_prica).toLocaleString()}</td>
-                        <td>${item.upName || '-'}</td>
-                        <td>${item.upSizeName || '-'}</td>
-                    </tr>
-                `;
-            });
-
-            html += '</tbody></table>';
-            document.getElementById('output').innerHTML = html;
-            document.getElementById('timestamp').textContent = `[업데이트 시각] ${new Date().toLocaleTimeString()}`;
-        }
-
-        // 일정 시간(ms) 대기하는 함수
-        function delay(ms) {
-            return new Promise(resolve => setTimeout(resolve, ms));
-        }
-        
         async function updateData() {
-            try {
-                document.getElementById('output').innerText = '데이터 불러오는 중...';
-                const token = await fetchToken();
-                if (!token) throw new Error('토큰 발급 실패');
-        
-                const stockList = await fetchTopStocks(token);
-                const mergedData = [];
-        
-                for (let i = 0; i < stockList.length; i++) {
-                    const item = stockList[i];
-                    const code = item.stk_cd.split('_')[0];
-        
-                    try {
-                        const detail = await fetchStockDetail(token, code);
-        
-                        mergedData.push({
-                            stk_cd: code,
-                            now_rank: item.now_rank,
-                            stk_nm: item.stk_nm,
-                            flu_rt: item.flu_rt,
-                            trde_prica: item.trde_prica,
-                            upName: detail.upName,
-                            upSizeName: detail.upSizeName,
-                        });
-                    } catch (err) {
-                        console.warn(`종목 ${code} 상세 조회 실패`, err);
-                    }
-        
-                    await delay(300); // 각 종목마다 300ms 대기 (과도한 요청 방지)
-                }
-        
-                renderTable(mergedData);
-            } catch (e) {
-                document.getElementById('output').innerText = '에러 발생: ' + e;
+            const token = await fn_au10001(accessParams);
+            if (token) {
+                const dataList = await fn_ka10032(token, chartParams);
+                renderTable(dataList);
             }
         }
 
-
-        updateData(); // 최초 실행
-        setInterval(updateData, 120000); // 2분마다 갱신
+        // 최초 실행 + 5초마다 반복
+        updateData();
+        setInterval(updateData, 5000);
     </script>
 </body>
 </html>
