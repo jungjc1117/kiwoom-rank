@@ -20,7 +20,7 @@
     </style>
 </head>
 <body>
-    <h1>Kiwoom 종목정보 통합 조회 (30초마다 갱신)</h1>
+    <h1>Kiwoom 종목정보 통합 조회 (2분마다 갱신)</h1>
     <div id="timestamp"></div>
     <div id="output">데이터 불러오는 중...</div>
 
@@ -164,7 +164,7 @@
 
 
         updateData(); // 최초 실행
-        setInterval(updateData, 30000); // 5초마다 갱신
+        setInterval(updateData, 120000); // 2분마다 갱신
     </script>
 </body>
 </html>
