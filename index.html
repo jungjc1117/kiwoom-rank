@@ -27,7 +27,7 @@
     <script>
         async function fn_au10001(data) {
             const url = 'https://mockapi.kiwoom.com/oauth2/token';
-
+        
             try {
                 const response = await fetch(url, {
                     method: 'POST',
@@ -36,7 +36,7 @@
                     },
                     body: JSON.stringify(data)
                 });
-
+        
                 const result = await response.json();
                 return result.token;
             } catch (error) {
@@ -44,10 +44,10 @@
                 return null;
             }
         }
-
+        
         async function fn_ka10032(token, data) {
             const url = 'https://mockapi.kiwoom.com/api/dostk/rkinfo';
-
+        
             try {
                 const response = await fetch(url, {
                     method: 'POST',
@@ -60,7 +60,7 @@
                     },
                     body: JSON.stringify(data)
                 });
-
+        
                 const result = await response.json();
                 return result.trde_prica_upper || [];
             } catch (error) {
@@ -68,7 +68,7 @@
                 return [];
             }
         }
-
+        
         function renderTable(dataList) {
             let html = `
                 <table>
@@ -83,7 +83,7 @@
                     </thead>
                     <tbody>
             `;
-
+        
             dataList.forEach(item => {
                 const code = item.stk_cd.split('_')[0];
                 html += `
@@ -96,7 +96,7 @@
                     </tr>
                 `;
             });
-
+        
             html += `</tbody></table>`;
             document.getElementById('output').innerHTML = html;
             document.getElementById('timestamp').textContent = `[업데이트 시각] ${new Date().toLocaleTimeString()}`;
