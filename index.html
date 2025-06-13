@@ -25,50 +25,74 @@
     <div id="output"></div>
 
     <script>
-        async function fn_au10001(data) {
+        async function fetchToken() {
             const url = 'https://mockapi.kiwoom.com/oauth2/token';
-        
-            try {
-                const response = await fetch(url, {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json;charset=UTF-8',
-                    },
-                    body: JSON.stringify(data)
-                });
-        
-                const result = await response.json();
-                return result.token;
-            } catch (error) {
-                document.getElementById('output').innerHTML = `<p>Token Error: ${error}</p>`;
-                return null;
-            }
+            const response = await fetch(url, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json;charset=UTF-8' },
+                body: JSON.stringify(accessParams),
+            });
+            const result = await response.json();
+            return result.token;
         }
-        
-        async function fn_ka10032(token, data) {
+
+        async function fetchTopStocks(token) {
             const url = 'https://mockapi.kiwoom.com/api/dostk/rkinfo';
-        
-            try {
-                const response = await fetch(url, {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json;charset=UTF-8',
-                        'authorization': `Bearer ${token}`,
-                        'cont-yn': 'N',
-                        'next-key': '',
-                        'api-id': 'ka10032',
-                    },
-                    body: JSON.stringify(data)
+            const response = await fetch(url, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json;charset=UTF-8',
+                    'authorization': `Bearer ${token}`,
+                    'cont-yn': 'N',
+                    'next-key': '',
+                    'api-id': 'ka10032',
+                },
+                body: JSON.stringify(chartParams),
+            });
+            const result = await response.json();
+            return result.trde_prica_upper || [];
+        }
+
+        async function fetchStockDetail(token, code) {
+            const url = 'https://mockapi.kiwoom.com/api/dostk/stkinfo';
+            const response = await fetch(url, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json;charset=UTF-8',
+                    'authorization': `Bearer ${token}`,
+                    'cont-yn': 'N',
+                    'next-key': '',
+                    'api-id': 'ka10100',
+                },
+                body: JSON.stringify({ stk_cd: code }),
+            });
+            const result = await response.json();
+            return result;
+        }
+
+        // 일정 시간(ms) 대기하는 함수
+        function delay(ms) {
+            return new Promise(resolve => setTimeout(resolve, ms));
+        }
+
+
+        const infoMap = new Map(); // 종목코드 => CSV 정보
+
+        async function loadCSVInfo() {
+            const response = await fetch('info.csv');
+            const text = await response.text();
+            const lines = text.trim().split('\n');
+            const headers = lines[0].split(',');
+
+            for (let i = 1; i < lines.length; i++) {
+                const fields = lines[i].split(',');
+                const record = {};
+                headers.forEach((key, index) => {
+                    record[key.trim()] = fields[index]?.trim();
                 });
-        
-                const result = await response.json();
-                return result.trde_prica_upper || [];
-            } catch (error) {
-                document.getElementById('output').innerHTML = `<p>API Error: ${error}</p>`;
-                return [];
+                infoMap.set(record["종목코드"], record);
             }
         }
-        
         function renderTable(dataList) {
             let html = `
                 <table>
@@ -79,25 +103,37 @@
                             <th>종목명</th>
                             <th>등락률</th>
                             <th>거래대금</th>
+                            <th>업종</th>
+                            <th>규모</th>
+                            <th>시장</th>
+                            <th>업종구분</th>
+                            <th>시가총액</th>
+                            <th>유통비율</th>
                         </tr>
                     </thead>
                     <tbody>
             `;
-        
+
             dataList.forEach(item => {
-                const code = item.stk_cd.split('_')[0];
+                const info = infoMap.get(item.stk_cd) || {};
                 html += `
                     <tr>
-                        <td>${code}</td>
+                        <td>${item.stk_cd}</td>
                         <td>${item.now_rank}</td>
                         <td>${item.stk_nm}</td>
                         <td>${item.flu_rt}</td>
                         <td>${parseInt(item.trde_prica).toLocaleString()}</td>
+                        <td>${item.upName || '-'}</td>
+                        <td>${item.upSizeName || '-'}</td>
+                        <td>${info["시장"] || '-'}</td>
+                        <td>${info["업종구분"] || '-'}</td>
+                        <td>${info["시가총액"] || '-'}</td>
+                        <td>${info["유통비율"] || '-'}</td>
                     </tr>
                 `;
             });
-        
-            html += `</tbody></table>`;
+
+            html += '</tbody></table>';
             document.getElementById('output').innerHTML = html;
             document.getElementById('timestamp').textContent = `[업데이트 시각] ${new Date().toLocaleTimeString()}`;
         }
@@ -116,16 +152,49 @@
         };
 
         async function updateData() {
-            const token = await fn_au10001(accessParams);
-            if (token) {
-                const dataList = await fn_ka10032(token, chartParams);
-                renderTable(dataList);
-            }
-        }
+        try {
+            document.getElementById('output').innerText = '데이터 불러오는 중...';
+            const token = await fetchToken();
+            if (!token) throw new Error('토큰 발급 실패');
 
-        // 최초 실행 + 5초마다 반복
-        updateData();
-        setInterval(updateData, 5000);
+            const stockList = await fetchTopStocks(token);
+            const mergedData = [];
+
+            for (let i = 0; i < stockList.length; i++) {
+                const item = stockList[i];
+                const code = item.stk_cd.split('_')[0];
+
+                try {
+                    const detail = await fetchStockDetail(token, code);
+
+                    mergedData.push({
+                        stk_cd: code,
+                        now_rank: item.now_rank,
+                        stk_nm: item.stk_nm,
+                        flu_rt: item.flu_rt,
+                        trde_prica: item.trde_prica,
+                        upName: detail.upName,
+                        upSizeName: detail.upSizeName,
+                    });
+                } catch (err) {
+                    console.warn(`종목 ${code} 상세 조회 실패`, err);
+                }
+
+                await delay(300); // 각 종목마다 대기
+            }
+
+            renderTable(mergedData);
+        } catch (e) {
+            document.getElementById('output').innerText = '에러 발생: ' + e;
+        }
+    }
+
+    // 초기 실행
+    (async () => {
+        await loadCSVInfo();     // 먼저 CSV 정보를 불러오고
+        await updateData();      // 종목 조회
+        setInterval(updateData, 30000); // 이후 주기 갱신
+    })();
     </script>
 </body>
 </html>
