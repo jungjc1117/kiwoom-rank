@@ -90,7 +90,16 @@
             }
             return sectorRates;
         }
-
+        function getTickSize(price) {
+            if (price < 2000) return 1;
+            if (price < 5000) return 5;
+            if (price < 20000) return 10;
+            if (price < 50000) return 50;
+            if (price < 200000) return 100;
+            if (price < 500000) return 500;
+            return 1000;
+        }
+        
         function renderTable(dataList) {
             let html = `
                 <table>
@@ -104,29 +113,42 @@
                             <th>거래대금</th>
                             <th>업종등락률</th>
                             <th>업종비율</th>
+                            <th>+10틱 ~ -10틱 변화율</th>
                         </tr>
                     </thead>
                     <tbody>
             `;
+        
             dataList.forEach(item => {
+                const price = Math.abs(item.cur_prc);
+                const tickSize = getTickSize(price);
+                const upperPrice = price + tickSize * 10;
+                const lowerPrice = price - tickSize * 10;
+        
+                const upperChangePercent = ((upperPrice - price) / price) * 100;
+                const lowerChangePercent = ((lowerPrice - price) / price) * 100;
+                const totalChange = upperChangePercent - lowerChangePercent;
+        
                 html += `
                     <tr>
                         <td>${item.stk_cd}</td>
                         <td>${item.now_rank}</td>
                         <td>${item.stk_nm}</td>
-                        <td>${Math.abs(item.cur_prc)}</td>
+                        <td>${price}</td>
                         <td>${item.flu_rt}</td>
                         <td>${parseInt(item.trde_prica).toLocaleString()}</td>
                         <td>${item.업종등락률 || '-'}</td>
                         <td>${item.업종비율 != null ? (parseFloat(item.업종비율) * 100).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 }) + '%' : '-'}</td>
-
+                        <td>${totalChange.toFixed(2)}%</td>
                     </tr>
                 `;
             });
+        
             html += '</tbody></table>';
             document.getElementById('output').innerHTML = html;
             document.getElementById('timestamp').textContent = `[업데이트 시각] ${new Date().toLocaleTimeString()}`;
         }
+
 
         async function updateData() {
             try {
