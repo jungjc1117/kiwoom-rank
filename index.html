@@ -99,6 +99,7 @@
                             <th>종목코드</th>
                             <th>순위</th>
                             <th>종목명</th>
+                            <th>현재가</th>
                             <th>등락률</th>
                             <th>거래대금</th>
                             <th>업종등락률</th>
@@ -113,6 +114,7 @@
                         <td>${item.stk_cd}</td>
                         <td>${item.now_rank}</td>
                         <td>${item.stk_nm}</td>
+                        <td>${item.cur_prc}</td>
                         <td>${item.flu_rt}</td>
                         <td>${parseInt(item.trde_prica).toLocaleString()}</td>
                         <td>${item.업종등락률 || '-'}</td>
@@ -144,6 +146,7 @@
                         now_rank: item.now_rank,
                         stk_nm: item.stk_nm,
                         flu_rt: item.flu_rt,
+                        cur_prc: item.cur_prc,
                         trde_prica: item.trde_prica,
                         시장: info.시장,
                         업종구분: info.업종구분,
