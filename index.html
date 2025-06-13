@@ -53,28 +53,10 @@
             return result.trde_prica_upper || [];
         }
 
-        async function fetchStockDetail(token, code) {
-            const url = 'https://mockapi.kiwoom.com/api/dostk/stkinfo';
-            const response = await fetch(url, {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json;charset=UTF-8',
-                    'authorization': `Bearer ${token}`,
-                    'cont-yn': 'N',
-                    'next-key': '',
-                    'api-id': 'ka10100',
-                },
-                body: JSON.stringify({ stk_cd: code }),
-            });
-            const result = await response.json();
-            return result;
-        }
-
         // 일정 시간(ms) 대기하는 함수
         function delay(ms) {
             return new Promise(resolve => setTimeout(resolve, ms));
         }
-
 
         const infoMap = new Map(); // 종목코드 => CSV 정보
 
@@ -103,8 +85,6 @@
                             <th>종목명</th>
                             <th>등락률</th>
                             <th>거래대금</th>
-                            <th>업종</th>
-                            <th>규모</th>
                             <th>시장</th>
                             <th>업종구분</th>
                             <th>시가총액</th>
@@ -123,8 +103,6 @@
                         <td>${item.stk_nm}</td>
                         <td>${item.flu_rt}</td>
                         <td>${parseInt(item.trde_prica).toLocaleString()}</td>
-                        <td>${item.upName || '-'}</td>
-                        <td>${item.upSizeName || '-'}</td>
                         <td>${info["시장"] || '-'}</td>
                         <td>${info["업종구분"] || '-'}</td>
                         <td>${info["시가총액"] || '-'}</td>
@@ -137,7 +115,6 @@
             document.getElementById('output').innerHTML = html;
             document.getElementById('timestamp').textContent = `[업데이트 시각] ${new Date().toLocaleTimeString()}`;
         }
-
 
         const accessParams = {
             grant_type: 'client_credentials',
@@ -173,8 +150,6 @@
                         stk_nm: item.stk_nm,
                         flu_rt: item.flu_rt,
                         trde_prica: item.trde_prica,
-                        upName: detail.upName,
-                        upSizeName: detail.upSizeName,
                     });
                 } catch (err) {
                     console.warn(`종목 ${code} 상세 조회 실패`, err);
