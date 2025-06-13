@@ -20,7 +20,7 @@
     </style>
 </head>
 <body>
-    <h1>Kiwoom 거래대금상위종목 조회 (5초마다 갱신)</h1>
+    <h1>Kiwoom 거래대금상위종목 조회 (30초마다 갱신)</h1>
     <div id="timestamp"></div>
     <div id="output"></div>
 
@@ -129,21 +129,18 @@
         };
 
         async function updateData() {
-        try {
-            document.getElementById('output').innerText = '데이터 불러오는 중...';
-            const token = await fetchToken();
-            if (!token) throw new Error('토큰 발급 실패');
-
-            const stockList = await fetchTopStocks(token);
-            const mergedData = [];
-
-            for (let i = 0; i < stockList.length; i++) {
-                const item = stockList[i];
-                const code = item.stk_cd.split('_')[0];
-
-                try {
-                    const detail = await fetchStockDetail(token, code);
-
+            try {
+                document.getElementById('output').innerText = '데이터 불러오는 중...';
+                const token = await fetchToken();
+                if (!token) throw new Error('토큰 발급 실패');
+        
+                const stockList = await fetchTopStocks(token);
+                const mergedData = [];
+        
+                for (let i = 0; i < stockList.length; i++) {
+                    const item = stockList[i];
+                    const code = item.stk_cd.split('_')[0];  // '_AL' 제거
+        
                     mergedData.push({
                         stk_cd: code,
                         now_rank: item.now_rank,
@@ -151,18 +148,17 @@
                         flu_rt: item.flu_rt,
                         trde_prica: item.trde_prica,
                     });
-                } catch (err) {
-                    console.warn(`종목 ${code} 상세 조회 실패`, err);
+        
+                    await delay(100); // 혹시 모를 요청 오류 방지용 대기 (info.csv만 쓰면 사실 필요 없음)
                 }
-
-                await delay(300); // 각 종목마다 대기
+        
+                renderTable(mergedData);
+            } catch (e) {
+                document.getElementById('output').innerText = '에러 발생: ' + e.message;
+                console.error(e);
             }
-
-            renderTable(mergedData);
-        } catch (e) {
-            document.getElementById('output').innerText = '에러 발생: ' + e;
         }
-    }
+
 
     // 초기 실행
     (async () => {
