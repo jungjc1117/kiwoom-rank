@@ -136,12 +136,10 @@
                         <th>순위</th>
                         <th>종목명</th>
                         <th>등락률</th>
+                        <th>업종등락률</th>                        
                         <th>거래대금</th>
-                        <th>시장</th>
-                        <th>업종구분</th>
                         <th>시가총액</th>
                         <th>유통비율</th>
-                        <th>업종등락률</th>
                     </tr>
                 </thead>
                 <tbody>
@@ -157,12 +155,10 @@
                     <td>${item.now_rank}</td>
                     <td>${item.stk_nm}</td>
                     <td>${item.flu_rt}</td>
+                    <td>${sectorRate}</td>                    
                     <td>${parseInt(item.trde_prica).toLocaleString()}</td>
-                    <td>${info["시장"] || '-'}</td>
-                    <td>${info["업종구분"] || '-'}</td>
                     <td>${info["시가총액"] || '-'}</td>
                     <td>${info["유통비율"] || '-'}</td>
-                    <td>${sectorRate}</td>
                 </tr>
             `;
         });
