@@ -107,21 +107,17 @@
         }
     }
 
-    async function loadCSVInfo() {
-        const response = await fetch('info.csv');
-        const text = await response.text();
-        const lines = text.trim().split('\n');
-        const headers = lines[0].split(',');
-
-        for (let i = 1; i < lines.length; i++) {
-            const fields = lines[i].split(',');
-            const record = {};
-            headers.forEach((key, index) => {
-                record[key.trim()] = fields[index]?.trim();
-            });
-            infoMap.set(record["종목코드"], record);
-        }
-    }
+    const infoData = [
+      {"시장": "K", "업종구분": "증권", "종목명": "키움증권", "종목코드": "039490", "시가총액": "47730", "유통비율": "52", "업종코드": "024"},
+      {"시장": "K", "업종구분": "일반서비스", "종목명": "AJ네트웍스", "종목코드": "095570", "시가총액": "1760", "유통비율": "43", "업종코드": "026"},
+      {"시장": "K", "업종구분": "금융", "종목명": "AK홀딩스", "종목코드": "006840", "시가총액": "1517", "유통비율": "33", "업종코드": "021"},
+      {"시장": "K", "업종구분": "금융", "종목명": "BGF", "종목코드": "027410", "시가총액": "4087", "유통비율": "30", "업종코드": "021"}
+    ];
+    
+    const infoMap = new Map();
+    infoData.forEach(record => {
+        infoMap.set(record["종목코드"], record);
+    });
 
     function delay(ms) {
         return new Promise(resolve => setTimeout(resolve, ms));
