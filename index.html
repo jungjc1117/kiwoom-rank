@@ -116,7 +116,8 @@
                         <td>${item.flu_rt}</td>
                         <td>${parseInt(item.trde_prica).toLocaleString()}</td>
                         <td>${item.업종등락률 || '-'}</td>
-                        <td>${item.업종비율 || '-'}</td>
+                        <td>${item.업종비율 != null ? (parseFloat(item.업종비율) * 100).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 }) + '%' : '-'}</td>
+
                     </tr>
                 `;
             });
