@@ -93,51 +93,60 @@
         }
         
         function computeEstimatedDeal(flu_rt, 유통시총) {
-            const a = 0.00000231;
-            return a * Math.pow(flu_rt, 2.8) * Math.pow(유통시총, 2.78);
+            const a = 0.0000175;
+            return a * Math.pow(flu_rt, 2.8) * Math.pow(유통시총, 2.5) / 100;
         }
 
 
         function renderTable(dataList) {
-            let html = `
-                <table>
-                    <thead>
-                        <tr>
-                            <th>종목코드</th>
-                            <th>종목명</th>
-                            <th>현재가</th>
-                            <th>등락률</th>
-                            <th>거래대금</th>
-                            <th>예상거래대금</th>
-                            <th>업종등락률</th>
-                            <th>업종내비율</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-            `;
-            dataList.forEach(item => {
-                html += `
+            function generateRows(items) {
+                return items.map(item => `
                     <tr>
                         <td>${item.stk_cd}</td>
                         <td>${item.stk_nm}</td>
-                        <td>${Math.abs(item.cur_prc)}</td>
+                        <td>${item.cur_prc}</td>
                         <td>${item.flu_rt}</td>
-                        <td>${item.trde_prica ? parseInt(item.trde_prica) : '-'}</td>
-                        <td>${
-                            item.flu_rt && item.유통시총 && !isNaN(item.flu_rt) && !isNaN(item.유통시총)
-                                ? computeEstimatedDeal(item.flu_rt, item.유통시총).toFixed(0)
-                                : '-'
-                        }</td>
-
+                        <td>${item.trde_prica ? parseInt(item.trde_prica).toLocaleString() : '-'}</td>
+                        <td>${item.예상거래대금 || '-'}</td>
                         <td>${item.업종등락률 || '-'}</td>
                         <td>${item.업종내비율 != null ? Number(item.업종내비율).toFixed(5) : '-'}</td>
                     </tr>
-                `;
-            });
-            html += '</tbody></table>';
+                `).join('');
+            }
+        
+            const headers = `
+                <thead>
+                    <tr>
+                        <th>종목코드</th>
+                        <th>종목명</th>
+                        <th>현재가</th>
+                        <th>등락률</th>
+                        <th>거래대금(백만원)</th>
+                        <th>예상거래대금</th>
+                        <th>업종등락률</th>
+                        <th>업종내비율</th>
+                    </tr>
+                </thead>
+            `;
+        
+            const firstHalf = dataList.slice(0, 50);
+            const secondHalf = dataList.slice(50);
+        
+            let html = `
+                <div style="display: flex; gap: 20px;">
+                    <div style="flex: 1;">
+                        <table>${headers}<tbody>${generateRows(firstHalf)}</tbody></table>
+                    </div>
+                    <div style="flex: 1;">
+                        <table>${headers}<tbody>${generateRows(secondHalf)}</tbody></table>
+                    </div>
+                </div>
+            `;
+        
             document.getElementById('output').innerHTML = html;
             document.getElementById('timestamp').textContent = `[업데이트 시각] ${new Date().toLocaleTimeString()}`;
         }
+
 
         async function updateData() {
             try {
