@@ -122,7 +122,12 @@
                         <td>${Math.abs(item.cur_prc)}</td>
                         <td>${item.flu_rt}</td>
                         <td>${item.trde_prica ? parseInt(item.trde_prica) : '-'}</td>
-                        <td>${item.flu_rt && item.유통시총 ? computeEstimatedDeal(item.flu_rt, item.유통시총).toFixed(0) : '-'}</td>
+                        <td>${
+                            item.flu_rt && item.유통시총 && !isNaN(item.flu_rt) && !isNaN(item.유통시총)
+                                ? computeEstimatedDeal(item.flu_rt, item.유통시총).toFixed(0)
+                                : '-'
+                        }</td>
+
                         <td>${item.업종등락률 || '-'}</td>
                         <td>${item.업종내비율 != null ? Number(item.업종내비율).toFixed(5) : '-'}</td>
                     </tr>
@@ -152,6 +157,7 @@
                             ? parseFloat(info.시가총액) * parseFloat(info.유통비율)
                             : null);
 
+
                     return {
                         stk_cd: code,
                         now_rank: item.now_rank,
@@ -162,7 +168,7 @@
                         시가총액: info.시가총액,
                         유통비율: info.유통비율,
                         유통시총: 유통시총,
-                        업종등락률: sectorRates[info.업종번호] || '-',
+                        업종등락률: sectorRates[info.업종코드] || '-',
                         업종내비율: info.업종내비율,
                     };
                 });
