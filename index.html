@@ -95,15 +95,9 @@
         }
         
         function computeEstimatedDeal(flu_rt, 유통시총) {
-            if (flu_rt == null || 유통시총 == null || isNaN(flu_rt) || isNaN(유통시총)) return NaN;
-        
-            const r = parseFloat(flu_rt);         // 등락률 (%)
-            const mcap = parseFloat(유통시총);    // 유통시총 (백만원 단위)
-        
-            const logInput = 2.90 * Math.log(1 + r) + 1.45 * Math.log(1 + mcap) - 5.74;
-            return Math.exp(logInput) - 1;
+            const a = 0.0000175;
+            return a * Math.pow(flu_rt, 2.8) * Math.pow(유통시총, 2.5) / 100;
         }
-
 
 
         function renderTable(dataList) {
@@ -162,9 +156,9 @@
             `;
         
             document.getElementById('output').innerHTML = html;
-            
+
             //document.getElementById('timestamp').textContent = `[업데이트 시각] ${new Date().toLocaleTimeString()}`;
-            
+
         }
 
 
