@@ -112,6 +112,9 @@
                         <td>${item.업종등락률 || '-'}</td>
                         <td>${item.업종내비율 != null ? Number(item.업종내비율).toFixed(5) : '-'}</td>
                         -->
+                        <td>${item.시가총액 || '-'}</td>
+                        <td>${item.유통비율 || '-'}</td>
+                        <td>${item.유통시총 || '-'}</td>
                     </tr>
                 `).join('');
             }
@@ -129,6 +132,9 @@
                         <th>업종등락률</th>
                         <th>업종내비율</th>
                         -->
+                        <td>시가총액</td>
+                        <td>유통비율</td>
+                        <td>유통시총</td>
                     </tr>
                 </thead>
             `;
