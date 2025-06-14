@@ -192,13 +192,13 @@
                         : '-';
                 
                     let cur_prc = parseFloat(item.cur_prc);
-                    <!==
-                    if (item.pred_pre_sig === 2) {
-                        cur_prc = +cur_prc; // 양수 유지
-                    } else if (item.pred_pre_sig === 5) {
-                        cur_prc = -cur_prc; // 음수로 전환
-                    }
-                    -->
+                    
+                    // if (item.pred_pre_sig === 2) {
+                    //     cur_prc = +cur_prc; // 양수 유지
+                    // } else if (item.pred_pre_sig === 5) {
+                    //     cur_prc = -cur_prc; // 음수로 전환
+                    // }
+                    
                     return {
                         stk_cd: code,
                         now_rank: item.now_rank,
