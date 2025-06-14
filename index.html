@@ -101,53 +101,62 @@
         }
         
         function renderTable(dataList) {
-            let html = `
-                <table>
-                    <thead>
-                        <tr>
-                            <th>종목코드</th>
-                            <th>순위</th>
-                            <th>종목명</th>
-                            <th>현재가</th>
-                            <th>등락률</th>
-                            <th>거래대금</th>
-                            <th>업종등락률</th>
-                            <th>업종비율</th>
-                            <th>+10틱 ~ -10틱 변화율</th>
-                        </tr>
-                    </thead>
-                    <tbody>
+            const headers = `
+                <thead>
+                    <tr>
+                        <th>종목코드</th>
+                        <th>순위</th>
+                        <th>종목명</th>
+                        <th>현재가</th>
+                        <th>등락률</th>
+                        <th>거래대금</th>
+                        <th>업종등락률</th>
+                        <th>업종비율</th>
+                        <th>+10틱 ~ -10틱 변화율</th>
+                    </tr>
+                </thead>
             `;
         
-            dataList.forEach(item => {
-                const price = Math.abs(item.cur_prc);
-                const tickSize = getTickSize(price);
-                const upperPrice = price + tickSize * 10;
-                const lowerPrice = price - tickSize * 10;
+            function generateRows(items) {
+                return items.map(item => {
+                    const price = Math.abs(item.cur_prc);
+                    const tickSize = getTickSize(price);
+                    const upperPrice = price + tickSize * 10;
+                    const lowerPrice = price - tickSize * 10;
         
-                const upperChangePercent = ((upperPrice - price) / price) * 100;
-                const lowerChangePercent = ((lowerPrice - price) / price) * 100;
-                const totalChange = upperChangePercent - lowerChangePercent;
+                    const upperChangePercent = ((upperPrice - price) / price) * 100;
+                    const lowerChangePercent = ((lowerPrice - price) / price) * 100;
+                    const totalChange = upperChangePercent - lowerChangePercent;
         
-                html += `
-                    <tr>
-                        <td>${item.stk_cd}</td>
-                        <td>${item.now_rank}</td>
-                        <td>${item.stk_nm}</td>
-                        <td>${price}</td>
-                        <td>${item.flu_rt}</td>
-                        <td>${parseInt(item.trde_prica).toLocaleString()}</td>
-                        <td>${item.업종등락률 || '-'}</td>
-                        <td>${item.업종비율 != null ? (parseFloat(item.업종비율) * 100).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 }) + '%' : '-'}</td>
-                        <td>${totalChange.toFixed(2)}%</td>
-                    </tr>
-                `;
-            });
+                    return `
+                        <tr>
+                            <td>${item.stk_cd}</td>
+                            <td>${item.now_rank}</td>
+                            <td>${item.stk_nm}</td>
+                            <td>${price}</td>
+                            <td>${item.flu_rt}</td>
+                            <td>${parseInt(item.trde_prica).toLocaleString()}</td>
+                            <td>${item.업종등락률 || '-'}</td>
+                            <td>${item.업종비율 != null ? (parseFloat(item.업종비율) * 100).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 }) + '%' : '-'}</td>
+                            <td>${totalChange.toFixed(2)}%</td>
+                        </tr>
+                    `;
+                }).join('');
+            }
         
-            html += '</tbody></table>';
+            const firstHalf = dataList.slice(0, 50);
+            const secondHalf = dataList.slice(50);
+        
+            let html = `
+                <table>${headers}<tbody>${generateRows(firstHalf)}</tbody></table>
+                <br>
+                <table>${headers}<tbody>${generateRows(secondHalf)}</tbody></table>
+            `;
+        
             document.getElementById('output').innerHTML = html;
             document.getElementById('timestamp').textContent = `[업데이트 시각] ${new Date().toLocaleTimeString()}`;
         }
+
 
 
         async function updateData() {
