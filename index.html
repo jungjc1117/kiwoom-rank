@@ -86,7 +86,7 @@
                 });
                 const data = await res.json();
                 (data.all_inds_idex || []).forEach(item => {
-                    sectorRates[item.stk_cd] = item.flu_rt;
+                    sectorRates[item.inds_cd] = item.flu_rt;
                 });
             }
             return sectorRates;
