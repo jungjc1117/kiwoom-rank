@@ -11,7 +11,7 @@
         }
         th, td {
             border: 1px solid #ccc;
-            padding: 8px;
+            padding: 2px;
             text-align: center;
         }
         th {
@@ -20,7 +20,9 @@
     </style>
 </head>
 <body>
+    <!--
     <h1>Kiwoom 거래대금상위종목 조회 (10초마다 갱신)</h1>
+    -->
     <div id="timestamp"></div>
     <div id="output"></div>
 
@@ -154,7 +156,9 @@
             `;
         
             document.getElementById('output').innerHTML = html;
+            <!--
             document.getElementById('timestamp').textContent = `[업데이트 시각] ${new Date().toLocaleTimeString()}`;
+            -->
         }
 
 
