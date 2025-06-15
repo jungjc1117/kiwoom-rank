@@ -15,6 +15,8 @@
             text-align: center;
         }
         td {
+            border: 1px solid #ccc;
+            padding: 1px;
             text-align: right;
         }
     </style>
@@ -210,7 +212,7 @@
                         now_rank: item.now_rank,
                         stk_nm: item.stk_nm,
                         flu_rt: item.flu_rt,
-                        cur_prc: cur_prc,
+                        cur_prc: Math.abs(cur_prc),
                         trde_prica: item.trde_prica,
                         pred_pre_sig: item.pred_pre_sig,
                         시가총액: info.시가총액,
