@@ -114,7 +114,7 @@
                     <tr>
                         <td>${item.stk_cd}</td>
                         <td>${item.stk_nm}</td>
-                        <td>${item.cur_prc}</td>
+                        <td>${item.cur_prc ? parseInt(item.cur_prc).toLocaleString() : '-'}</td>
                         <td>${item.flu_rt}</td>
                         <td>${item.trde_prica ? parseInt(item.trde_prica).toLocaleString() : '-'}</td>
                         <!--
@@ -124,10 +124,10 @@
                         <td>${item.업종등락률 || '-'}</td>
                         <td>${item.업종내비율 != null ? Number(item.업종내비율).toFixed(5) : '-'}</td>
                         <!--
-                        <td>${item.시가총액 || '-'}</td>
+                        <td>${item.시가총액 ? parseInt(item.시가총액).toLocaleString() : '-'}</td>
                         <td>${item.유통비율 || '-'}</td>
                         -->
-                        <td>${item.유통시총 || '-'}</td>
+                        <td>${item.유통시총 ? parseInt(item.유통시총).toLocaleString() : '-'}</td>
                     </tr>
                 `).join('');
             }
