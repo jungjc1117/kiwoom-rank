@@ -22973,10 +22973,6 @@
                             ? parseFloat(info.시가총액) * parseFloat(info.유통비율)
                             : null);
                 
-                    const 예상거래대금 = (item.flu_rt && 유통시총)
-                        ? Math.round(computeEstimatedDeal(item.flu_rt, 유통시총)).toLocaleString()
-                        : '-';
-                
                     return {
                         stk_cd: code,
                         now_rank: item.now_rank,
