@@ -22892,25 +22892,6 @@
             return sectorRates;
         }
         
-        function computeEstimatedDeal(flu_rt, 유통시총) {
-            const a = 0.0000175;
-            return a * Math.pow(flu_rt, 2.8) * Math.pow(유통시총, 2.5) / 100;
-        }
-
-        // function computeEstimatedDeal(flu_rt, 유통시총) {
-        //     const a = 9.23e-14;
-        //     return (a * Math.pow(flu_rt, 2.8) * Math.pow(유통시총, 2.5)) / 100;
-        // }
-
-        // function computeEstimatedDeal(flu_rt, 유통시총_백만원) {
-        //     const 유통시총 = 유통시총_백만원 * 1_000_000; // 백만원 → 원
-        //     const a = 9.23e-14;
-
-        //     const raw = a * Math.pow(flu_rt, 2.8) * Math.pow(유통시총, 2.5);
-        //     const result = raw / 100; // 공식의 100분의 1 보정
-
-        //     return result / 1_000_000; // 원 → 백만원으로 반환
-        // }
 
 
         function renderTable(dataList) {
@@ -22922,17 +22903,13 @@
                         <td>${item.cur_prc}</td>
                         <td>${item.flu_rt}</td>
                         <td>${item.trde_prica ? parseInt(item.trde_prica).toLocaleString() : '-'}</td>
-                        <!--
-                        <td>${item.trde_prica}</td>
-                        -->
-                        <td>${item.예상거래대금 || '-'}</td>
-                        <!--
                         <td>${item.업종등락률 || '-'}</td>
-                        <td>${item.업종내비율 != null ? Number(item.업종내비율).toFixed(5) : '-'}</td>
-                        -->
                         <td>${item.시가총액 || '-'}</td>
+                        <!--
+                        <td>${item.업종내비율 != null ? Number(item.업종내비율).toFixed(5) : '-'}</td>
                         <td>${item.유통비율 || '-'}</td>
                         <td>${item.유통시총 || '-'}</td>
+                        -->
                     </tr>
                 `).join('');
             }
@@ -22945,14 +22922,13 @@
                         <th>현재가</th>
                         <th>등락률</th>
                         <th>거래대금(백만원)</th>
-                        <th>예상거래대금(백만원)</th>
-                        <!--
                         <th>업종등락률</th>
-                        <th>업종내비율</th>
-                        -->
                         <td>시가총액</td>
+                        <!--
+                        <th>업종내비율</th>
                         <td>유통비율</td>
                         <td>유통시총</td>
+                        -->
                     </tr>
                 </thead>
             `;
