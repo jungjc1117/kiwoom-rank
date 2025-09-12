@@ -19,6 +19,7 @@ jobs:
         run: |
           # sed 명령어를 사용하여 HTML 파일의 플레이스홀더를 실제 secret 값으로 치환합니다.
           # HTML 파일 내의 'APP_KEY'와 'APP_SECRET' 문자열을 시크릿 값으로 교체합니다.
+          # Use single quotes around the shell variables for correct substitution
           sed -i "s|'APP_KEY'|'${APP_KEY}'|g" index.html
           sed -i "s|'APP_SECRET'|'${APP_SECRET}'|g" index.html
 
