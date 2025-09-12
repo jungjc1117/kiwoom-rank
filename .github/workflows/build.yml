@@ -19,8 +19,8 @@ jobs:
         run: |
           # sed 명령어를 사용하여 HTML 파일의 플레이스홀더를 실제 secret 값으로 치환합니다.
           # HTML 파일 내의 'APP_KEY'와 'APP_SECRET' 문자열을 시크릿 값으로 교체합니다.
-          sed -i "s|'APP_KEY'|'$APP_KEY'|g" index.html
-          sed -i "s|'APP_SECRET'|'$APP_SECRET'|g" index.html
+          sed -i "s|'APP_KEY'|'${APP_KEY}'|g" index.html
+          sed -i "s|'APP_SECRET'|'${APP_SECRET}'|g" index.html
 
       - name: Upload artifact
         uses: actions/upload-artifact@v4
@@ -28,4 +28,4 @@ jobs:
           name: built-html
           path: index.html # 빌드된 HTML 파일 경로
 
-      # 필요에 따라 GitHub Pages, S3 등으로 배포하는 단계를 추가할 수 있습니다. 
+      # 필요에 따라 GitHub Pages, S3 등으로 배포하는 단계를 추가할 수 있습니다.
