@@ -17,8 +17,8 @@ jobs:
           APP_KEY: ${{ secrets.APP_KEY }}
           APP_SECRET: ${{ secrets.APP_SECRET }}
         run: |
-          sed -i "s|'APP_KEY'|\"${APP_KEY}\"|g" index.html
-          sed -i "s|'APP_SECRET'|\"${APP_SECRET}\"|g" index.html
+          sed -i "s|'APP_KEY'|'${APP_KEY}'|g" index.html
+          sed -i "s|'APP_SECRET'|'${APP_SECRET}'|g" index.html
 
       - name: Upload artifact
         uses: actions/upload-artifact@v4
