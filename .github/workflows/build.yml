@@ -10,10 +10,10 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout code
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
 
       - name: Set up Node.js
-        uses: actions/setup-node@v3
+        uses: actions/setup-node@v4
         with:
           node-version: '18' # Node.js 버전을 설정하세요.
 
@@ -26,14 +26,12 @@ jobs:
           APP_SECRET: ${{ secrets.APP_SECRET }}
         run: |
           # sed 명령어를 사용하여 HTML 파일의 플레이스홀더를 실제 secret 값으로 치환합니다.
-          # HTML 파일 내에서 와 같이 표시하고,
-          # sed로 해당 부분을 치환하도록 설정합니다.
-          sed -i "s/APP_KEY_PLACEHOLDER/$APP_KEY/g" index.html
-          sed -i "s/APP_SECRET_PLACEHOLDER/$APP_SECRET/g" index.html
-          # 다른 secret 값들도 동일한 방식으로 처리할 수 있습니다.
+          # HTML 파일 내의 'APP_KEY'와 'APP_SECRET' 문자열을 시크릿 값으로 교체합니다.
+          sed -i "s|'APP_KEY'|'$APP_KEY'|g" index.html
+          sed -i "s|'APP_SECRET'|'$APP_SECRET'|g" index.html
 
       - name: Upload artifact
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v4
         with:
           name: built-html
           path: index.html # 빌드된 HTML 파일 경로
