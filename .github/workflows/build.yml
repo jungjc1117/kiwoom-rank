@@ -28,4 +28,4 @@ jobs:
           name: built-html
           path: index.html # 빌드된 HTML 파일 경로
 
-      # 필요에 따라 GitHub Pages, S3 등으로 배포하는 단계를 추가할 수 있습니다.
+      # 필요에 따라 GitHub Pages, S3 등으로 배포하는 단계를 추가할 수 있습니다. 
