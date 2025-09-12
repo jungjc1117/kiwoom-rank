@@ -1,4 +1,4 @@
-<!DOCTYPE html> 
+<!DOCTYPE html>
 <html lang="ko">
 <head>
     <meta charset="UTF-8">
@@ -20,23 +20,23 @@
     </style>
 </head>
 <body>
+    <h1>Kiwoom 거래대금상위종위 조회 (10초마다 갱신)</h1>
     <div id="timestamp"></div>
     <div id="output"></div>
 
     <script>
-        const stockInfoList = []; // 이 부분은 그대로 두거나, 필요한 경우 로드하세요.
+        const stockInfoList = [];
 
         const accessParams = {
             grant_type: 'client_credentials',
-            // GitHub Actions에서 치환될 플레이스홀더 사용
-            appkey: 'APP_KEY_PLACEHOLDER',
-            secretkey: 'APP_SECRET_PLACEHOLDER',
+            appkey: 'APP_KEY',
+            secretkey: 'APP_SECRET',
         };
 
         const chartParams = {
-            mrkt_tp: '000',// 시장구분 000:전체, 001:코스피, 101:코스닥
-            mang_stk_incls: '1',// 관리종목포함 0:관리종목 미포함, 1:관리종목 포함
-            stex_tp: '3',// 거래소구분 1:KRX, 2:NXT 3.통합
+            mrkt_tp: '000', // 시장구분 000:전체, 001:코스피, 101:코스닥
+            mang_stk_incls: '1', // 관리종목포함 0:관리종목 미포함, 1:관리종목 포함
+            stex_tp: '3', // 거래소구분 1:KRX, 2:NXT 3.통합
         };
 
         async function fetchToken() {
@@ -104,7 +104,7 @@
                     </tr>
                 `).join('');
             }
-
+            
             const headers = `
                 <thead>
                     <tr>
@@ -117,10 +117,10 @@
                     </tr>
                 </thead>
             `;
-
+            
             const firstHalf = dataList.slice(0, 50);
             const secondHalf = dataList.slice(50);
-
+            
             let html = `
                 <div style="display: flex; gap: 20px;">
                     <div style="flex: 1;">
@@ -131,7 +131,7 @@
                     </div>
                 </div>
             `;
-
+            
             document.getElementById('output').innerHTML = html;
         }
 
@@ -147,13 +147,13 @@
                 const merged = stockList.map(item => {
                     const code = item.stk_cd.split('_')[0];
                     const info = stockInfoList.find(x => x.종목코드 === code) || {};
-
+                    
                     const 유통시총 = info.유통시총 != null
                         ? parseFloat(info.유통시총)
                         : (info.시가총액 && info.유통비율
                             ? parseFloat(info.시가총액) * parseFloat(info.유통비율)
                             : null);
-
+                    
                     return {
                         stk_cd: code,
                         now_rank: item.now_rank,
