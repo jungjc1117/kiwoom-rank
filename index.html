@@ -1,0 +1,299 @@
+<!DOCTYPE html>
+<html lang="ko"> 
+<head>
+    <meta charset="UTF-8">
+    <title>Kiwoom 거래대금상위종목 조회</title>
+    <style>
+        table {
+            border-collapse: collapse;
+            width: 100%;
+            margin-top: 1rem;
+        } 
+        th, td {
+            border: 1px solid #ccc;
+            padding: 2px;
+            text-align: center; /* 숫자 정렬 */
+        }
+        td{
+            text-align: right;
+        }
+        th {
+            background-color: #f0f0f0;
+        }
+        td:nth-child(1) {
+            text-align: center;
+        }
+        td:nth-child(2) {
+            text-align: center;
+        }
+        .copy-button {
+            background-color: #e0e0e0;
+            border: 1px solid #bbb;
+            padding: 3px 6px;
+            cursor: pointer;
+            border-radius: 3px;
+            font-size: 0.8em;
+        }
+        .copy-button:hover {
+            background-color: #d0d0d0;
+        }
+        .red-background {
+            background-color: #ff0000;
+            color: white;
+        }
+
+        .orange-background {
+            background-color: #ff9100;
+            color: #000;
+        }
+
+        .light-orange-background {
+            background-color: #ffc982;
+            color: #000;
+        }
+
+        .blue-background {
+            background-color: #e6f2ff; /* 연한 파란색 */
+            color: blue;
+        }
+    </style>
+</head>
+<body>
+    <div id="timestamp"></div>
+    <div id="output"></div>
+
+    <script>
+        
+
+        const accessParams = {
+        grant_type: 'client_credentials',
+        appkey: APP_KEY,
+        secretkey: APP_SECRET,
+    };
+
+    const chartParams = {
+        mrkt_tp: '000', // 시장구분 000:전체, 001:코스피, 101:코스닥
+        mang_stk_incls: '1', // 관리종목포함 0:관리종목 미포함, 1:관리종목 포함
+        stex_tp: '3', // 거래소구분 1:KRX, 2:NXT 3.통합
+    };
+
+    async function fetchToken() {
+        const url = 'https://mockapi.kiwoom.com/oauth2/token';
+        const res = await fetch(url, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json;charset=UTF-8' },
+            body: JSON.stringify(accessParams)
+        });
+        const data = await res.json();
+        return data.token;
+    }
+
+    async function fetchTopStocks(token) {
+        const url = 'https://mockapi.kiwoom.com/api/dostk/rkinfo';
+        const res = await fetch(url, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json;charset=UTF-8',
+                'authorization': `Bearer ${token}`,
+                'api-id': 'ka10032',
+                'cont-yn': 'N',
+                'next-key': ''
+            },
+            body: JSON.stringify(chartParams)
+        });
+        const data = await res.json();
+        // IMPORTANT: Check if data.trde_prica_upper is actually returning data.
+        // If this is empty, nothing will be displayed.
+        return data.trde_prica_upper || [];
+    }
+
+    // *** Moved copyToClipboard to the global scope ***
+    function copyToClipboard(text) {
+        navigator.clipboard.writeText(text)
+            .then(() => {
+                // alert(`'${text}' 종목코드가 클립보드에 복사되었습니다!`);
+            })
+            .catch(err => {
+                console.error('클립보드 복사 실패:', err);
+                alert('클립보드 복사에 실패했습니다.');
+            });
+    }
+
+    function renderTable(dataList) {
+        function generateRows(items) {
+            return items.map(item => {
+                // Check if item properties exist before calculation
+                const trde_prica_val = parseFloat(item.trde_prica) || 0; // Use a temporary variable for calculation
+                const cur_prc = parseFloat(item.cur_prc) || 0;
+                const 유통주식수 = item.유통주식수 || 0;
+                const 발행주식수 = item.발행주식수 || 0;
+
+                // Ensure now_trde_qty and pred_trde_qty are available for the last column
+                const now_trde_qty = parseFloat(item.now_trde_qty) || 0;
+                const pred_trde_qty = parseFloat(item.pred_trde_qty) || 0;
+                const prevDayRatio = (pred_trde_qty !== 0) ? (now_trde_qty / pred_trde_qty).toFixed(1) : 'N/A';
+                const prevDayRatioNum = parseFloat(prevDayRatio);
+
+                // 등락률 관련 클래스 설정 (29% 이상: red, 0% 미만: light-blue)
+                let flu_rt_class = '';
+                const flu_rt_num = parseFloat(item.flu_rt);
+                if (!isNaN(flu_rt_num)) {
+                    if (flu_rt_num >= 29) {
+                        flu_rt_class = ' class="red-background"';
+                    } else if (flu_rt_num < 0) {
+                        flu_rt_class = ' class="blue-background"';
+                    }
+                }
+
+                // 전일비 관련 클래스 설정
+                let prevDayRatioClass = '';
+                if (!isNaN(prevDayRatioNum)) {
+                    if (prevDayRatioNum < 1) {
+                        prevDayRatioClass = ' class="blue-background"';
+                    } else if (prevDayRatioNum >= 4) {
+                        prevDayRatioClass = ' class="red-background"';
+                    } else if (prevDayRatioNum >= 2) {
+                        prevDayRatioClass = ' class="orange-background"';
+                    } else if (prevDayRatioNum >= 1) {
+                        prevDayRatioClass = ' class="light-orange-background"';
+                    }
+                }
+
+                // 거래대금 관련 클래스 설정 (단위: 억)
+                const actual_trde_prica_억 = (trde_prica_val * 1000000) / 100000000;
+                let trde_prica_class = '';
+                if (actual_trde_prica_억 >= 2000) {
+                    trde_prica_class = ' class="red-background"';
+                } else if (actual_trde_prica_억 >= 1000) {
+                    trde_prica_class = ' class="orange-background"';
+                } else if (actual_trde_prica_억 >= 500) {
+                    trde_prica_class = ' class="light-orange-background"';
+                }
+
+                // 시가총액 계산 및 포맷팅 (발행주식수 기준)
+                const marketCap = (발행주식수 * cur_prc) / 100000000;
+                const formattedMarketCap = isNaN(marketCap) ? 'N/A' : Math.round(marketCap).toLocaleString();
+
+                // 거래대금 억 단위로 변환 및 포맷팅
+                const formattedTrdePrica = isNaN(actual_trde_prica_억) ? 'N/A' : Math.round(actual_trde_prica_억).toLocaleString();
+
+                return `
+                    <tr>
+                        <td>
+                            <button class="copy-button" onclick="copyToClipboard('${item.stk_cd}')">
+                                ${item.stk_cd}
+                            </button>
+                        </td>
+                        <td>${item.stk_nm || 'N/A'}</td>
+                        <td>${isNaN(cur_prc) ? 'N/A' : cur_prc.toLocaleString()}</td>
+                        <td${flu_rt_class}>${item.flu_rt || 'N/A'}</td>
+                        <td${trde_prica_class}>${formattedTrdePrica}</td>
+                        <td>${formattedMarketCap}</td>
+                        <td${prevDayRatioClass}>${prevDayRatio}</td>
+                    </tr>
+                `;
+            }).join('');
+        }
+        
+        const headers = `
+            <thead>
+                <tr>
+                    <th>종목코드</th>
+                    <th>종목명</th>
+                    <th>현재가</th>
+                    <th>등락률</th>
+                    <th>거래대금</th>
+                    <th>유통총액</th>
+                    <th>전일비</th>
+                </tr>
+            </thead>
+        `;
+        
+        // Adjust slice counts if the total number of items is less than 44 or 88
+        const firstHalf = dataList.slice(0, Math.min(dataList.length, 44));
+        const secondHalf = dataList.slice(44);
+        
+        let html = `
+            <div style="display: flex; gap: 20px;">
+                <div style="flex: 1;">
+                    <table>${headers}<tbody>${generateRows(firstHalf)}</tbody></table>
+                </div>
+                <div style="flex: 1;">
+                    <table>${headers}<tbody>${generateRows(secondHalf)}</tbody></table>
+                </div>
+            </div>
+        `;
+        
+        document.getElementById('output').innerHTML = html;
+    }
+
+    async function updateData() {
+        try {
+            document.getElementById('output').innerText = '데이터 불러오는 중...';
+            const token = await fetchToken();
+            const stockListApi = await fetchTopStocks(token);
+
+            // Check if stockListApi has data
+            if (!stockListApi || stockListApi.length === 0) {
+                document.getElementById('output').innerText = 'API에서 데이터를 가져오지 못했습니다. Mock API 응답을 확인해주세요.';
+                return;
+            }
+
+            const merged = stockListApi.reduce((acc, item) => {
+                const code = item.stk_cd ? item.stk_cd.split('_')[0] : null;
+                if (!code) return acc;
+
+                const info = stockInfoList.find(x => x.종목코드 === code);
+
+                if (info) {
+                    // 이 부분을 추가하여 cur_prc를 정의합니다.
+                    const cur_prc = Math.abs(item.cur_prc);
+
+                    const marketCap = info.유통주식수 * cur_prc;
+                    acc.push({
+                        stk_cd: code,
+                        stk_nm: item.stk_nm,
+                        flu_rt: item.flu_rt,
+                        cur_prc: cur_prc,
+                        trde_prica: item.trde_prica,
+                        발행주식수: info.발행주식수,
+                        유통주식수: info.유통주식수,
+                        now_trde_qty: item.now_trde_qty,
+                        pred_trde_qty: item.pred_trde_qty,
+                        유통총액: marketCap
+                    });
+                }
+                return acc;
+            }, []);
+
+            // 이제 `유통총액`을 기준으로 정렬
+            merged.sort((a, b) => {
+                return b.유통총액 - a.유통총액; // 내림차순 정렬
+            });
+
+            renderTable(merged);
+        } catch (e) {
+            console.error("Error during updateData:", e); // Log the error for debugging
+            document.getElementById('output').innerText = '데이터 로딩 중 에러가 발생했습니다: ' + e.message;
+        }
+    }
+
+    updateData();
+    setInterval(updateData, 10000);
+
+    const stockInfoList = [
+    {"종목코드": "005930","발행주식수": 5919638100,"유통주식수": 4470174000},
+    {"종목코드": "010140","발행주식수": 880000100,"유통주식수": 666218000},
+    {"종목코드": "011200","발행주식수": 1025039100,"유통주식수": 655664000},
+    {"종목코드": "316140","발행주식수": 742592100,"유통주식수": 647884000},
+    {"종목코드": "000660","발행주식수": 728002100,"유통주식수": 539749000},
+    {"종목코드": "034020","발행주식수": 640561100,"유통주식수": 439540000},
+    {"종목코드": "055550","발행주식수": 485495100,"유통주식수": 391762000},
+    {"종목코드": "088350","발행주식수": 868530100,"유통주식수": 359110000},
+    {"종목코드": "323410","발행주식수": 476990100,"유통주식수": 344483000},
+    {"종목코드": "035720","발행주식수": 442125100,"유통주식수": 333014000},
+    {"종목코드": "105560","발행주식수": 381462100,"유통주식수": 303004000},
+    {"종목코드": "088260","발행주식수": 63342100,"유통주식수": 633421000}
+];
+</script>
+</body>
