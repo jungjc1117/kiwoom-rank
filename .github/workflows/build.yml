@@ -19,15 +19,14 @@ jobs:
           APP_KEY: ${{ secrets.APP_KEY }}
           APP_SECRET: ${{ secrets.APP_SECRET }}
         run: |
-          # sed 명령의 경로를 루트 폴더로 변경
-          sed -i "s|APP_KEY|'${APP_KEY}'|g" index.html
-          sed -i "s|APP_SECRET|'${APP_SECRET}'|g" index.html
+          # APP_KEY와 APP_SECRET를 실제 값으로 치환
+          sed -i "s|appkey: APP_KEY|appkey: '${APP_KEY}'|g" index.html
+          sed -i "s|secretkey: APP_SECRET|secretkey: '${APP_SECRET}'|g" index.html
 
       - name: Upload artifact
         uses: actions/upload-artifact@v4
         with:
           name: built-html
-          # 아티팩트 업로드 경로를 루트 폴더로 변경
           path: index.html
           
   deploy:
@@ -51,7 +50,6 @@ jobs:
       - name: Upload Pages artifact
         uses: actions/upload-pages-artifact@v3
         with:
-          # index.html이 바로 루트에 있으므로 './'를 사용
           path: './'
 
       - name: Deploy to GitHub Pages
