@@ -19,6 +19,7 @@ jobs:
           APP_KEY: ${{ secrets.APP_KEY }}
           APP_SECRET: ${{ secrets.APP_SECRET }}
         run: |
+          # secrets 값을 직접 치환합니다.
           sed -i "s|APP_KEY|'${APP_KEY}'|g" templates/index.html
           sed -i "s|APP_SECRET|'${APP_SECRET}'|g" templates/index.html
 
@@ -27,7 +28,7 @@ jobs:
         with:
           name: built-html
           path: templates/index.html
-
+          
   deploy:
     runs-on: ubuntu-latest
     needs: build
@@ -42,18 +43,18 @@ jobs:
         uses: actions/download-artifact@v4
         with:
           name: built-html
-          path: .
+          path: pages_dist # 다운로드할 임시 디렉토리를 명시적으로 지정
 
       - name: Setup Pages
         uses: actions/configure-pages@v5
 
-      - name: Move file
-        run: mv templates/index.html ./index.html
-        
+      - name: Move index.html to artifact root
+        run: mv pages_dist/templates/index.html pages_dist/index.html
+
       - name: Upload Pages artifact
         uses: actions/upload-pages-artifact@v3
         with:
-          path: './'
+          path: 'pages_dist' # GitHub Pages의 루트가 될 디렉토리를 지정
 
       - name: Deploy to GitHub Pages
         id: deployment
