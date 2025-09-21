@@ -47,6 +47,9 @@ jobs:
       - name: Setup Pages
         uses: actions/configure-pages@v5
 
+      - name: Move file
+        run: mv templates/index.html ./index.html
+        
       - name: Upload Pages artifact
         uses: actions/upload-pages-artifact@v3
         with:
