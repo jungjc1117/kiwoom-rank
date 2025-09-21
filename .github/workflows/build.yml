@@ -1,3 +1,5 @@
+# build.yml
+
 name: Build and Deploy
 
 on:
@@ -17,18 +19,18 @@ jobs:
           APP_KEY: ${{ secrets.APP_KEY }}
           APP_SECRET: ${{ secrets.APP_SECRET }}
         run: |
-          sed -i "s|'APP_KEY'|'${APP_KEY}'|g" index.html
-          sed -i "s|'APP_SECRET'|'${APP_SECRET}'|g" index.html
+          sed -i "s|APP_KEY|'${APP_KEY}'|g" templates/index.html
+          sed -i "s|APP_SECRET|'${APP_SECRET}'|g" templates/index.html
 
       - name: Upload artifact
         uses: actions/upload-artifact@v4
         with:
           name: built-html
-          path: index.html
+          path: templates/index.html
 
   deploy:
     runs-on: ubuntu-latest
-    needs: build # 빌드 작업이 완료된 후에 실행됩니다.
+    needs: build
     permissions:
       pages: write
       id-token: write
@@ -40,6 +42,7 @@ jobs:
         uses: actions/download-artifact@v4
         with:
           name: built-html
+          path: .
 
       - name: Setup Pages
         uses: actions/configure-pages@v5
@@ -47,7 +50,7 @@ jobs:
       - name: Upload Pages artifact
         uses: actions/upload-pages-artifact@v3
         with:
-          path: './' # 다운로드한 아티팩트의 경로
+          path: './'
 
       - name: Deploy to GitHub Pages
         id: deployment
